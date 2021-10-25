@@ -29,6 +29,7 @@ class Factory extends Thread{
     private int ID,lotsize;
     private String product;
     private ArrayList<Integer> material = new ArrayList<Integer>();
+    public Factory() {}
     public Factory(int id, String pro, int lot, int ma1, int ma2){
         super(pro);
         ID = id;
@@ -42,11 +43,18 @@ class Factory extends Thread{
     public static void print_thread(String T){
         System.out.printf("Thread  %-2s  >>  ", T );
     }
+    
     public int getMaterial(int i){
         return material.get(i);
     }
     public String getProduct(){
         return this.product;
+    }
+    public int getID(){
+        return this.ID;
+    }
+    public int getLot(){
+        return this.lotsize;
     }
     public void run(){
         print_thread(Thread.currentThread().getName());
@@ -62,6 +70,7 @@ public class FactorySimulation{
     public static void main(String[] args){
         int filename_pass = 0,n_material,n_day;
         ArrayList<Factory> Flist = new ArrayList<Factory>();
+        ArrayList<Factory> Flist_temp = new ArrayList<Factory>();
         ArrayList<OneShareMaterial> Mlist = new ArrayList<OneShareMaterial>();
         String filename;
         Scanner keyboard = new Scanner(System.in);
@@ -76,7 +85,7 @@ public class FactorySimulation{
                     String line = readfile.nextLine();
                     String [] buf = line.split(",");
                     if(buf.length == 2){
-                        for(int i =0;i<buf.length;i++){
+                        for(int i = 0;i<buf.length;i++){
                             OneShareMaterial n = new OneShareMaterial(buf[i].trim(),0);
                             Mlist.add(n);
                         }
@@ -107,33 +116,39 @@ public class FactorySimulation{
             keyboard.close();
 
             for(int i=1;i<=n_day;i++){
+                for(int j=0;j<Flist.size();j++){
+                    Factory f_temp = new Factory(Flist.get(j).getID(),Flist.get(j).getProduct(),Flist.get(j).getLot(),Flist.get(j).getMaterial(0),Flist.get(j).getMaterial(1));
+                    Flist_temp.add(f_temp);
+                }
+
                 print_thread(Thread.currentThread().getName());
                 System.out.println("Day "+ i);
-                try{
-                    Flist.get(2).start();
-                    Flist.get(1).start();
-                    Flist.get(0).start();
-                }   
-                catch (Exception e){
-                    System.out.println(e);
-                }             
-                for(int j=0;j<Flist.size();j++){
-                    try {
-                        Flist.get(j).start();           ////// ****Not working - Can't start thread mulitple time**** /////
+
+                for(int j=0;j<Flist_temp.size();j++){
+                    try{
+                        Flist_temp.get(j).start();
                     }
                     catch(Exception e){
                         System.out.println(e);
                     }
                 }
-                for(int k=0;k<Flist.size();k++){
+
+                for(int j=0;j<Flist_temp.size();j++){
                     try{
-                        Flist.get(k).join();
+                        Flist_temp.get(j).join();
                     }
                     catch(Exception e) {}
                 }
 
+                Flist_temp.clear();
                 System.out.println("---------This is the end------------");
+
             }
+
+            print_thread(Thread.currentThread().getName());
+            System.out.println("Summary");
+            print_thread(Thread.currentThread().getName());
+            System.out.println("");
         }
     }
 }
