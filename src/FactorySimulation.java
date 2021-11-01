@@ -39,27 +39,6 @@ class Factory extends Thread {
     private String product;
     private ArrayList<Integer> material = new ArrayList<Integer>();
     protected CyclicBarrier cfinish;
-    // public Factory() {
-    // }
-
-    // public Factory(int id, String pro, int lot, int ma1, int ma2) {
-    // super(pro);
-    // ID = id;
-    // product = pro;
-    // lotsize = lot;
-    // material.add(ma1 * lotsize);
-    // material.add(ma2 * lotsize);
-    // }
-
-    // public Factory(int id, String pro, int lot, ArrayList<Integer> ma) {
-    // super(pro);
-    // ID = id;
-    // product = pro;
-    // lotsize = lot;
-    // for (int i = 0; i < ma.size(); i++) {
-    // material.add(ma.get(i) * lotsize);
-    // }
-    // }
 
     public Factory(int id, String pro, int lot, ArrayList<OneShareMaterial> osm, ArrayList<Integer> ma) {
         super(pro);
@@ -74,6 +53,11 @@ class Factory extends Thread {
 
     public static void print_thread(String T) {
         System.out.printf("Thread %-14s >> ", T);
+    }
+
+    public ArrayList<Integer> getMaterialAL() {
+        return material;
+
     }
 
     public int getMaterial(int i) {
@@ -121,7 +105,7 @@ public class FactorySimulation {
     public static void main(String[] args) {
         int filename_pass = 0, n_material = 0, n_day, row = 0;
         ArrayList<Factory> Flist = new ArrayList<Factory>();
-        ArrayList<Factory> Flist_temp = new ArrayList<Factory>();
+        ArrayList<Thread> Flist_temp = new ArrayList<Thread>();
         ArrayList<OneShareMaterial> Mlist = new ArrayList<OneShareMaterial>();
 
         String filename;
@@ -152,6 +136,8 @@ public class FactorySimulation {
                         ArrayList<Integer> numsofmaterial = new ArrayList<Integer>();
                         numsofmaterial.add(Integer.parseInt(buf[3].trim()));
                         numsofmaterial.add(Integer.parseInt(buf[4].trim()));
+                        // System.out.printf("This is buttons %d and this is zippers %d \n",
+                        // Integer.parseInt(buf[3].trim()), Integer.parseInt(buf[4].trim()));
                         Factory f = new Factory(Integer.parseInt(buf[0].trim()), buf[1].trim(),
                                 Integer.parseInt(buf[2].trim()), Mlist, numsofmaterial);
                         f.setCyclicBarrier(finish);
@@ -194,15 +180,20 @@ public class FactorySimulation {
                 // Flist.get(j).getMaterial(0), Flist.get(j).getMaterial(1));
                 // Flist_temp.add(f_temp);
                 // }
-                for (int j = 0; j < Flist.size(); j++) {
-                    Factory f_temp = new Factory(Flist.get(j).getID(), Flist.get(j).getProduct(), Flist.get(j).getLot(),
-                            Mlist, numsofmaterial);
+                // for (int j = 0; j < Flist.size(); j++) {
+                // Factory f_temp = new Factory(Flist.get(j).getID(), Flist.get(j).getProduct(),
+                // Flist.get(j).getLot(),
+                // Mlist, Flist.get(i).getMaterialAL());
+                // print_thread(f_temp.getProduct());
+                // System.out.printf("this is buttons %d and this is zippers %d\n",
+                // f_temp.getMaterial(0),
+                // f_temp.getMaterial(1));
+                // // public Factory(int id, String pro, int lot, ArrayList<OneShareMaterial>
+                // osm,
+                // // ArrayList<Integer> ma) {
 
-                    // public Factory(int id, String pro, int lot, ArrayList<OneShareMaterial> osm,
-                    // ArrayList<Integer> ma) {
-
-                    Flist_temp.add(f_temp);
-                }
+                // Flist_temp.add(f_temp);
+                // }
 
                 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -213,9 +204,16 @@ public class FactorySimulation {
                     Mlist.get(j).put(n_material);
                 }
 
-                for (int j = 0; j < Flist_temp.size(); j++) {
+                System.out.println();
+
+                ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                for (int j = 0; j < Flist.size(); j++) {
                     try {
-                        Flist_temp.get(j).start();
+                        Thread T = new Thread(Flist.get(j));
+                        T.setName(Flist.get(j).getName());
+                        T.start();
+                        Flist_temp.add(T);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -224,7 +222,21 @@ public class FactorySimulation {
                 for (int j = 0; j < Flist_temp.size(); j++) {
                     try {
                         Flist_temp.get(j).join();
-                    } catch (Exception e) {
+                    } catch (InterruptedException e) {
+                        // TODO: handle exception
+                        System.out.println(e);
+                    }
+                }
+                Flist_temp.clear();
+                System.out.println();
+
+                ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                for (int j = 0; j < Flist.size(); j++) {
+                    try {
+                        Flist.get(j).join();
+                    } catch (InterruptedException e) {
+                        System.out.println(e);
                     }
                 }
 
