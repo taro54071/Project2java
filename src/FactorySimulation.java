@@ -80,20 +80,24 @@ class Factory extends Thread {
         cfinish = f;
     }
 
-    synchronized public void run() {
-        try {
-            for (int i = 0; i < OSM.size(); i++) {
-                if (material.get(i) * lotsize < OSM.get(i).getbalance()) {
-                    OSM.get(i).get(material.get(i) * lotsize);
-                } else {
-                    print_thread(Thread.currentThread().getName());
-                    System.out.println("----- Fail");
-                }
-            }
+    public void run() {
+        synchronized (this) {
+            try {
+                for (int i = 0; i < OSM.size(); i++) {
+                    if (material.get(i) * lotsize < OSM.get(i).getbalance()) {
+                        OSM.get(i).get(material.get(i) * lotsize);
+                    } else {
+                        System.out.println("Failed-------");
+                    }
 
-        } catch (Exception e) {
-            // TODO: handle exception
+                }
+
+            } catch (Exception e) {
+                // TODO: handle exception
+                System.out.println(e);
+            }
         }
+
     }
 }
 
@@ -134,8 +138,11 @@ public class FactorySimulation {
                         }
                     } else {
                         ArrayList<Integer> numsofmaterial = new ArrayList<Integer>();
-                        numsofmaterial.add(Integer.parseInt(buf[3].trim()));
-                        numsofmaterial.add(Integer.parseInt(buf[4].trim()));
+                        for (int i = 3; i < buf.length; i++) {
+                            numsofmaterial.add(Integer.parseInt(buf[i].trim()));
+                        }
+                        // numsofmaterial.add(Integer.parseInt(buf[3].trim()));
+                        // numsofmaterial.add(Integer.parseInt(buf[4].trim()));
                         // System.out.printf("This is buttons %d and this is zippers %d \n",
                         // Integer.parseInt(buf[3].trim()), Integer.parseInt(buf[4].trim()));
                         Factory f = new Factory(Integer.parseInt(buf[0].trim()), buf[1].trim(),
