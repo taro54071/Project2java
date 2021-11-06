@@ -19,6 +19,10 @@ class OneShareMaterial {
 
     synchronized public void get(int x) {
         balance -= x;
+        if (balance < 0) {
+            balance = 0;
+            x = 0;
+        }
         System.out.printf("Thread %-14s >> Get %3d %s\tbalance = %3d %s\n", Thread.currentThread().getName(), x, name,
                 balance, name);
     }
@@ -34,10 +38,11 @@ class OneShareMaterial {
 
 class Factory extends Thread {
     private ArrayList<OneShareMaterial> OSM = new ArrayList<OneShareMaterial>();
-    private int ID, total_lot = 0;
+    private int ID, completed_lot = 0;
     private int lotsize = 0;
     private String product;
     private ArrayList<Integer> material = new ArrayList<Integer>();
+    private ArrayList<Integer> stored_material = new ArrayList<Integer>();
     protected CyclicBarrier cfinish;
 
     public Factory(int id, String pro, int lot, ArrayList<OneShareMaterial> osm, ArrayList<Integer> ma) {
@@ -48,6 +53,11 @@ class Factory extends Thread {
         OSM = osm;
         for (int i = 0; i < ma.size(); i++) {
             material.add(ma.get(i));
+        }
+        // System.out.println("hello");
+        // Collections.copy(stored_material, material);
+        for (int i = 0; i < material.size(); i++) {
+            stored_material.add(material.get(i));
         }
     }
 
@@ -81,17 +91,42 @@ class Factory extends Thread {
     }
 
     public void run() {
+        int check = 0;
+        int set_sleep = (int) (Math.random() * 200);
+        try {
+            sleep(set_sleep);
+        } catch (InterruptedException e) {
+            // TODO: handle exception
+        }
         synchronized (this) {
             try {
                 for (int i = 0; i < OSM.size(); i++) {
-                    if (material.get(i) * lotsize < OSM.get(i).getbalance()) {
-                        OSM.get(i).get(material.get(i) * lotsize);
-                    } else {
-                        System.out.println("Failed-------");
+                    int get_material = 0;
+                    if (stored_material.get(i) * lotsize <= OSM.get(i).getbalance()) {
+                        get_material = stored_material.get(i) * lotsize;
+                        OSM.get(i).get(get_material);
+                    } else if (stored_material.get(i) * lotsize > OSM.get(i).getbalance()
+                            && OSM.get(i).getbalance() != 0) {
+                        // material from yesterday
+                        get_material = OSM.get(i).getbalance(); // take all of the balance
+                        OSM.get(i).get(get_material);
+                    } else if (stored_material.get(i) * lotsize > OSM.get(i).getbalance()
+                            && OSM.get(i).getbalance() == 0) {
+                        get_material = 0;
+                        OSM.get(i).get(get_material);
                     }
-
+                    for (int j = 0; j < material.size(); j++) {
+                        check += stored_material.get(j);
+                    }
                 }
-
+                if (check == 0) { // fail
+                    print_thread(Thread.currentThread().getName());
+                    System.out.println("----- Fail");
+                } else { // success
+                    completed_lot++;
+                    print_thread(Thread.currentThread().getName());
+                    System.out.printf("+++++ Complete Lot %d\n", completed_lot);
+                }
             } catch (Exception e) {
                 // TODO: handle exception
                 System.out.println(e);
@@ -138,15 +173,17 @@ public class FactorySimulation {
                         }
                     } else {
                         ArrayList<Integer> numsofmaterial = new ArrayList<Integer>();
-                        for (int i = 3; i < buf.length; i++) {
-                            numsofmaterial.add(Integer.parseInt(buf[i].trim()));
-                        }
-                        // numsofmaterial.add(Integer.parseInt(buf[3].trim()));
-                        // numsofmaterial.add(Integer.parseInt(buf[4].trim()));
+                        // for (int i = 3; i < buf.length; i++) {
+                        // numsofmaterial.add(Integer.parseInt(buf[i].trim()));
+                        // }
+                        numsofmaterial.add(Integer.parseInt(buf[3].trim()));
+                        numsofmaterial.add(Integer.parseInt(buf[4].trim()));
                         // System.out.printf("This is buttons %d and this is zippers %d \n",
                         // Integer.parseInt(buf[3].trim()), Integer.parseInt(buf[4].trim()));
+
                         Factory f = new Factory(Integer.parseInt(buf[0].trim()), buf[1].trim(),
                                 Integer.parseInt(buf[2].trim()), Mlist, numsofmaterial);
+
                         f.setCyclicBarrier(finish);
                         print_thread(Thread.currentThread().getName());
                         // System.out.printf("%-2s factory\t%6s units per lot\t materials per lot = %5d
