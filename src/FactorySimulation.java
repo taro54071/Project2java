@@ -100,32 +100,42 @@ class Factory extends Thread {
         }
         synchronized (this) {
             try {
-                for (int i = 0; i < OSM.size(); i++) {
+                for (int i = 0; i < material.size(); i++) {
+                    check = 0;
                     int get_material = 0;
-                    if (stored_material.get(i) * lotsize <= OSM.get(i).getbalance()) {
-                        get_material = stored_material.get(i) * lotsize;
+                    if (stored_material.get(i) <= OSM.get(i).getbalance()) {
+                        get_material = stored_material.get(i);
                         OSM.get(i).get(get_material);
-                    } else if (stored_material.get(i) * lotsize > OSM.get(i).getbalance()
-                            && OSM.get(i).getbalance() != 0) {
+                    } else if (stored_material.get(i) > OSM.get(i).getbalance() && OSM.get(i).getbalance() != 0) {
                         // material from yesterday
                         get_material = OSM.get(i).getbalance(); // take all of the balance
                         OSM.get(i).get(get_material);
-                    } else if (stored_material.get(i) * lotsize > OSM.get(i).getbalance()
-                            && OSM.get(i).getbalance() == 0) {
+                    } else if (stored_material.get(i) > OSM.get(i).getbalance() && OSM.get(i).getbalance() == 0) {
                         get_material = 0;
                         OSM.get(i).get(get_material);
                     }
-                    for (int j = 0; j < material.size(); j++) {
-                        check += stored_material.get(j);
+
+                    // System.out.printf("This is before stored material %d\n",
+                    // stored_material.get(i));
+                    stored_material.set(i, stored_material.get(i) - get_material);
+                    // System.out.printf("This is after stored material %d\n",
+                    // stored_material.get(i));
+
+                    check += stored_material.get(i);
+                    if (check == 0) {
+                        break;
                     }
                 }
-                if (check == 0) { // fail
+                if (check != 0) { // fail
                     print_thread(Thread.currentThread().getName());
                     System.out.println("----- Fail");
                 } else { // success
                     completed_lot++;
                     print_thread(Thread.currentThread().getName());
                     System.out.printf("+++++ Complete Lot %d\n", completed_lot);
+                    for (int i = 0; i < stored_material.size(); i++) {
+                        stored_material.set(i, material.get(i));
+                    }
                 }
             } catch (Exception e) {
                 // TODO: handle exception
@@ -173,11 +183,11 @@ public class FactorySimulation {
                         }
                     } else {
                         ArrayList<Integer> numsofmaterial = new ArrayList<Integer>();
-                        // for (int i = 3; i < buf.length; i++) {
-                        // numsofmaterial.add(Integer.parseInt(buf[i].trim()));
-                        // }
-                        numsofmaterial.add(Integer.parseInt(buf[3].trim()));
-                        numsofmaterial.add(Integer.parseInt(buf[4].trim()));
+                        for (int i = 3; i < buf.length; i++) {
+                            numsofmaterial.add(Integer.parseInt(buf[i].trim()) * Integer.parseInt(buf[2].trim()));
+                        }
+                        // numsofmaterial.add(Integer.parseInt(buf[3].trim()));
+                        // numsofmaterial.add(Integer.parseInt(buf[4].trim()));
                         // System.out.printf("This is buttons %d and this is zippers %d \n",
                         // Integer.parseInt(buf[3].trim()), Integer.parseInt(buf[4].trim()));
 
