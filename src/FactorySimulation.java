@@ -112,7 +112,7 @@ class Factory extends Thread implements Comparable<Factory> {
         } catch (InterruptedException e) {
             // TODO: handle exception
         }
-        synchronized (this) {
+        synchronized (this.OSM) {
             try {
                 for (int i = 0; i < material.size(); i++) {
                     if (stored_material.get(i) != 0) {
