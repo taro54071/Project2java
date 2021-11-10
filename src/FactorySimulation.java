@@ -54,8 +54,6 @@ class Factory extends Thread implements Comparable<Factory> {
         for (int i = 0; i < ma.size(); i++) {
             material.add(ma.get(i));
         }
-        // System.out.println("hello");
-        // Collections.copy(stored_material, material);
         for (int i = 0; i < material.size(); i++) {
             stored_material.add(material.get(i));
         }
@@ -117,8 +115,6 @@ class Factory extends Thread implements Comparable<Factory> {
                 for (int i = 0; i < material.size(); i++) {
                     if (stored_material.get(i) != 0) {
                         int get_material = 0;
-                        // stored_material.get(0) = 20
-                        // stored_material.get(1) = 60
                         if (stored_material.get(i) <= OSM.get(i).getbalance()) {
                             get_material = stored_material.get(i);
                             OSM.get(i).get(get_material);
@@ -132,17 +128,7 @@ class Factory extends Thread implements Comparable<Factory> {
                             check = 1;
                         }
 
-                        // System.out.printf("This is before stored material %d\n",
-                        // stored_material.get(i));
-                        // stored_material.set(i, stored_material.get(i) - get_material);
-                        // System.out.printf("This is after stored material %d\n",
-                        // stored_material.get(i));
-
-                        // hand 100 balance 60
-                        // stored.get(1) = 40
-                        // check += stored_material.get(i);
                         stored_material.set(i, stored_material.get(i) - get_material);
-                        // System.out.printf("This is round %d: %d\n", i + 1, check);
                     } else {
                         continue;
                     }
@@ -173,29 +159,26 @@ public class FactorySimulation {
     }
 
     public static void main(String[] args) {
-        int filename_pass = 0, n_material = 0, n_day, row = 0;
+        int filename_pass = 0, n_material = 0, n_day = 0, row = 0;
         ArrayList<Factory> Flist = new ArrayList<Factory>();
         ArrayList<Thread> Flist_temp = new ArrayList<Thread>();
         ArrayList<OneShareMaterial> Mlist = new ArrayList<OneShareMaterial>();
 
-        String filename;
+        String filename = "";
         CyclicBarrier finish = new CyclicBarrier(3);
         Scanner keyboard = new Scanner(System.in);
         while (filename_pass != 1) {
             try {
-                print_thread(Thread.currentThread().getName());
-                System.out.println("Enter product specification file = ");
-                System.out.println("spec.txt"); /// For debug only
-                // filename = keyboard.nextLine();
-                Scanner readfile = new Scanner(new File("spec.txt"));
+                while (filename.equals("spec.txt") == false) {
+                    print_thread(Thread.currentThread().getName());
+                    System.out.println("Enter product specification file = ");
+                    filename = keyboard.nextLine();
+                    // System.out.println(filename != "spec.txt");
+                }
+                Scanner readfile = new Scanner(new File(filename));
                 while (readfile.hasNext()) {
                     String line = readfile.nextLine();
                     String[] buf = line.split(",");
-                    // if (buf.length == 2) {
-                    // for (int i = 0; i < buf.length; i++) {
-                    // OneShareMaterial n = new OneShareMaterial(buf[i].trim(), 0);
-                    // Mlist.add(n);
-                    // }
                     if (row == 0) { // first row in spec.txt
                         for (int i = 0; i < buf.length; i++) {
                             OneShareMaterial n = new OneShareMaterial(buf[i].trim(), 0);
@@ -207,20 +190,12 @@ public class FactorySimulation {
                         for (int i = 3; i < buf.length; i++) {
                             numsofmaterial.add(Integer.parseInt(buf[i].trim()) * Integer.parseInt(buf[2].trim()));
                         }
-                        // numsofmaterial.add(Integer.parseInt(buf[3].trim()));
-                        // numsofmaterial.add(Integer.parseInt(buf[4].trim()));
-                        // System.out.printf("This is buttons %d and this is zippers %d \n",
-                        // Integer.parseInt(buf[3].trim()), Integer.parseInt(buf[4].trim()));
 
                         Factory f = new Factory(Integer.parseInt(buf[0].trim()), buf[1].trim(),
                                 Integer.parseInt(buf[2].trim()), Mlist, numsofmaterial);
 
                         f.setCyclicBarrier(finish);
                         print_thread(Thread.currentThread().getName());
-                        // System.out.printf("%-2s factory\t%6s units per lot\t materials per lot = %5d
-                        // %s, %5d %s\n",
-                        // buf[1], buf[2], Integer.parseInt(buf[3].trim()), Mlist.get(0).getNameM(),
-                        // Integer.parseInt(buf[4].trim()), Mlist.get(1).getNameM());
                         System.out.printf("%-9s factory \t%6s units per lot\t materials per lot = %5d %s, %5d %s\n",
                                 f.getProduct(), f.getLot(), numsofmaterial.get(0), Mlist.get(0).getNameM(),
                                 numsofmaterial.get(1), Mlist.get(1).getNameM());
@@ -228,49 +203,36 @@ public class FactorySimulation {
                     }
                 }
                 filename_pass = 1;
-            } catch (
-
-            FileNotFoundException e) {
+            } catch (FileNotFoundException e) {
                 System.out.println(e);
                 System.out.println("=== Cannot find input file Please enter again ===");
-            } catch (Exception e) { // For Debug only
+            } catch (NumberFormatException e) { // For Debug only
                 System.out.println(e);
+                continue;
             }
 
             System.out.println();
 
-            print_thread(Thread.currentThread().getName());
-            System.out.println("Enter amount of meterial per day =");
-            n_material = Integer.parseInt(keyboard.nextLine());
-            System.out.println("Enter amount of Day =");
-            n_day = Integer.parseInt(keyboard.nextLine());
+            while (n_material <= 0 || n_day <= 0) {
+                try {
+                    print_thread(Thread.currentThread().getName());
+                    System.out.println("Enter amount of material per day =");
+                    n_material = Integer.parseInt(keyboard.nextLine());
+                    System.out.println("Enter amount of Day =");
+                    n_day = Integer.parseInt(keyboard.nextLine());
+                    if (n_material <= 0 || n_day <= 0) {
+                        throw new NumberFormatException();
+                    }
+                } catch (NumberFormatException e) {
+                    // TODO: handle exception
+                    System.out.println("Please enter material and day again");
+                }
+            }
+
             keyboard.close();
             System.out.println();
 
             for (int i = 1; i <= n_day; i++) {
-                // for (int j = 0; j < Flist.size(); j++) {
-                // ArrayList<Integer> numsofmaterial_temp = new ArrayList<Integer>();
-                // Factory f_temp = new Factory(Flist.get(j).getID(), Flist.get(j).getProduct(),
-                // Flist.get(j).getLot(),
-                // Flist.get(j).getMaterial(0), Flist.get(j).getMaterial(1));
-                // Flist_temp.add(f_temp);
-                // }
-                // for (int j = 0; j < Flist.size(); j++) {
-                // Factory f_temp = new Factory(Flist.get(j).getID(), Flist.get(j).getProduct(),
-                // Flist.get(j).getLot(),
-                // Mlist, Flist.get(i).getMaterialAL());
-                // print_thread(f_temp.getProduct());
-                // System.out.printf("this is buttons %d and this is zippers %d\n",
-                // f_temp.getMaterial(0),
-                // f_temp.getMaterial(1));
-                // // public Factory(int id, String pro, int lot, ArrayList<OneShareMaterial>
-                // osm,
-                // // ArrayList<Integer> ma) {
-
-                // Flist_temp.add(f_temp);
-                // }
-
-                ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                 print_thread(Thread.currentThread().getName());
                 System.out.println("Day " + i);
@@ -280,8 +242,6 @@ public class FactorySimulation {
                 }
 
                 System.out.println();
-
-                ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                 for (int j = 0; j < Flist.size(); j++) {
                     try {
@@ -305,8 +265,6 @@ public class FactorySimulation {
                 Flist_temp.clear();
                 System.out.println();
 
-                ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
                 for (int j = 0; j < Flist.size(); j++) {
                     try {
                         Flist.get(j).join();
@@ -327,9 +285,6 @@ public class FactorySimulation {
             for (int i = 0; i < Flist.size(); i++) {
                 print_thread(Thread.currentThread().getName());
                 System.out.printf("Total %-8s Lots = %3d\n", Flist.get(i).getProduct(), Flist.get(i).getTotalCLot());
-                // print_thread(Thread.currentThread().getName());
-                // System.out.println("");
-
             }
 
         }
