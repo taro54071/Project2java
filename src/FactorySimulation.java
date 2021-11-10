@@ -173,8 +173,8 @@ public class FactorySimulation {
                     print_thread(Thread.currentThread().getName());
                     System.out.println("Enter product specification file = ");
                     filename = keyboard.nextLine();
-                    // System.out.println(filename != "spec.txt");
                 }
+                System.out.println();
                 Scanner readfile = new Scanner(new File(filename));
                 while (readfile.hasNext()) {
                     String line = readfile.nextLine();
@@ -218,7 +218,8 @@ public class FactorySimulation {
                     print_thread(Thread.currentThread().getName());
                     System.out.println("Enter amount of material per day =");
                     n_material = Integer.parseInt(keyboard.nextLine());
-                    System.out.println("Enter amount of Day =");
+                    print_thread(Thread.currentThread().getName());
+                    System.out.println("Enter nubmer of Day =");
                     n_day = Integer.parseInt(keyboard.nextLine());
                     if (n_material <= 0 || n_day <= 0) {
                         throw new NumberFormatException();
@@ -286,7 +287,6 @@ public class FactorySimulation {
                 print_thread(Thread.currentThread().getName());
                 System.out.printf("Total %-8s Lots = %3d\n", Flist.get(i).getProduct(), Flist.get(i).getTotalCLot());
             }
-
         }
     }
 }
